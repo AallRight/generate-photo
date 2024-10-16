@@ -20,17 +20,20 @@ class TransformerSR(nn.Module):
     def forward(self, x):
         # x 的形状应该是 (batch_size, channels, height, width)
         batch_size, channels, height, width = x.size()
-
+        # print(x.size())
         # 将图像分割成补丁
         x = x.unfold(2, self.patch_size, self.patch_size).unfold(3, self.patch_size, self.patch_size)
         x = x.contiguous().view(batch_size, channels, -1, self.patch_size * self.patch_size)
         x = x.permute(0, 2, 3, 1).contiguous().view(batch_size, -1, self.d_model)
+        # print(x.size())
 
         # 编码
         encoded = self.encoder(x)  # 输出形状为 (batch_size, height * width / patch_size^2, d_model)
+        # print(encoded.size())
 
         # 将编码后的表示转换回图像空间
         output = self.fc(encoded)  # 形状为 (batch_size, height * width / patch_size^2, patch_size * patch_size * input_dim)
+        # print(output.size())
 
         # 计算输出的形状
         num_patches_height = height // self.patch_size
